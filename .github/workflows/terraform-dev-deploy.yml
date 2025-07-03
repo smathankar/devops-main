@@ -130,7 +130,7 @@ jobs:
             -backend-config="use_lockfile=true"
             
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve infra/dev/plan/tfplan
 
 
 
