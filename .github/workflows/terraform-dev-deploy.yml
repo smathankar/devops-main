@@ -1,0 +1,131 @@
+name: Terraform Deploy to AWS
+
+on:
+  # push:
+  #   branches:
+  #     - main   # or your preferred branch
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+defaults:
+  run:
+    working-directory: infra/dev
+
+jobs:
+
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+    outputs:
+      tfplan-path: ${{ steps.save-plan.outputs.tfplan }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Bucket Name from SSM Parameter
+        run: |
+          Bucket_VALUE=$(aws ssm get-parameter \
+            --name "${{ vars.SSM_PARAMETER_NAME_BACKEND }}" \
+            --with-decryption \
+            --query "Parameter.Value" \
+            --output text)
+            
+          echo "bucket_name=$Bucket_VALUE" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TF_VERSION }} #1.7.5  # Choose your desired version
+
+      - name: Terraform Init with S3 Backend
+        run: |
+          terraform init \
+            -backend-config="bucket=$bucket_name" \
+            -backend-config="key=dev/terraform.tfstate" \   # need to make variable
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="encrypt=true" \
+            -backend-config="use_lockfile=true"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Save Terraform Plan
+        id: save-plan
+        run: |
+          mkdir -p plan
+          mv tfplan plan/
+          chmod 755 .terraform.lock.hcl
+          
+        # Save as artifact for next job
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: plan/tfplan
+
+ 
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    environment:
+      name: review-tf-plan  # triggers manual approval
+    permissions:
+      contents: read
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Bucket Name from SSM Parameter
+        run: |
+          Bucket_VALUE=$(aws ssm get-parameter \
+            --name "${{ vars.SSM_PARAMETER_NAME_BACKEND }}" \
+            --with-decryption \
+            --query "Parameter.Value" \
+            --output text)
+            
+          echo "bucket_name=$Bucket_VALUE" >> $GITHUB_ENV
+
+      # - name: Debug - List files
+      #   run: ls -R
+      
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: .
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
+
+      - name: Terraform Init with S3 Backend
+        run: |
+          terraform init \
+            -backend-config="bucket=$bucket_name" \
+            -backend-config="key=dev/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="encrypt=true" \
+            -backend-config="use_lockfile=true"
+            
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+
