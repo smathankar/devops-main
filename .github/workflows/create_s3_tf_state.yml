@@ -1,0 +1,44 @@
+name: Configure Backend in AWS for Terraform
+
+on:
+  # push:
+  #   branches:
+  #     - main   # or your preferred branch
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+
+  configure-terraform-backend:
+    name: Deploy S3 for TF Backend
+    runs-on: ubuntu-latest
+    # outputs:
+    #   bucket_name: ${{ steps.bucket.outputs.bucket_name }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+    # outputs:
+    #   tfplan-path: ${{ steps.save-plan.outputs.tfplan }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create S3 Bucket and SSM Parameter for State file
+        # id: bucket
+        run: |
+          bucket_name=tf-state-lock-$(tr -dc a-z0-9 </dev/urandom | head -c 8)-bucket
+          echo "creating $bucket_name ..."
+          aws s3api create-bucket \
+          --bucket $bucket_name
+          echo "putting version on $bucket_name ..."
+          aws s3api put-bucket-versioning \
+          --bucket $bucket_name \
+          --versioning-configuration Status=Enabled
+          echo "creating SSM Parameter to store bucket name"
+          aws ssm put-parameter \
+            --name "${{ vars.SSM_PARAMETER_NAME_BACKEND }}" \
+            --value $bucket_name \
+            --type "String" \
+            --overwrite
