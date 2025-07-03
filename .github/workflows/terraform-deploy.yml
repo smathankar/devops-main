@@ -6,6 +6,10 @@ on:
   #     - main   # or your preferred branch
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
+defaults:
+  run:
+    working-directory: infra/dev
+
 jobs:
 
   terraform-plan:
@@ -42,7 +46,7 @@ jobs:
         run: |
           terraform init \
             -backend-config="bucket=$bucket_name" \
-            -backend-config="key=terraform.tfstate" \
+            -backend-config="key=dev/terraform.tfstate" \   # need to make variable
             -backend-config="region=${{ vars.AWS_REGION }}" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
