@@ -60,8 +60,8 @@ jobs:
       - name: Save Terraform Plan
         id: save-plan
         run: |
-          mkdir -p ./plan
-          mv tfplan ./plan/
+          mkdir -p plan
+          mv tfplan plan/
           chmod 755 .terraform.lock.hcl
           
         # Save as artifact for next job
@@ -70,7 +70,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          path: ./plan/tfplan
+          path: plan/tfplan
       - name: Debug - List files
         run: ls -R
 
