@@ -101,8 +101,8 @@ jobs:
             
           echo "bucket_name=$Bucket_VALUE" >> $GITHUB_ENV
 
-      # - name: Debug - List files
-      #   run: ls -R
+      - name: Debug - List files
+        run: ls -R
       
 
       - name: Download Plan
@@ -110,6 +110,8 @@ jobs:
         with:
           name: tfplan
           path: .
+      - name: Debug - List files
+        run: ls -R
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
