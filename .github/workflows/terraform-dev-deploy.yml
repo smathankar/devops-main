@@ -120,7 +120,7 @@ jobs:
         run: |
           terraform init \
             -backend-config="bucket=$bucket_name" \
-            -backend-config="key=terraform.tfstate" \
+            -backend-config="key=dev/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}" \
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
