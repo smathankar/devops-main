@@ -2,17 +2,11 @@
 module "vpc" {
   source                    = "./modules/vpc"
   
-  prefix                    = var.prefix
-  environment               = var.environment
+  vpc_cidr             = var.vpc_cidr
+  prefix               = var.prefix
   
   #depends_on = [ module.s3_bucket ]
 }
-
-
-
-
-
-
 
 
 
