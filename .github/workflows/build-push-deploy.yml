@@ -35,7 +35,7 @@ jobs:
 
     - name: Tag image for ECR
       run: |
-        IMAGE_URI=992382555771.dkr.ecr.us-east-1.amazonaws.com/test-ecr
+        IMAGE_URI=905418147503.dkr.ecr.us-east-1.amazonaws.com/test-ecr
         docker tag my-app:latest $IMAGE_URI
         echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
