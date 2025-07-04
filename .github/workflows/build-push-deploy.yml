@@ -46,4 +46,17 @@ jobs:
     - name: Print pushed image URI
       run: |
         echo "Image pushed to: $IMAGE_URI"
+ 
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v2.0
+      id: install
 
+    - name: Update kube config
+      run: aws eks update-kubeconfig --name test
+
+    - name: Deploy to EKS
+      run: |
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
+
+  
