@@ -2,8 +2,13 @@ name: Build, Push and Deploy
 
 on:
  
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: infra/dev
 
 jobs:
   
