@@ -12,7 +12,7 @@ module "eks" {
   source                    = "../modules/eks"
   
   prefix               = var.prefix
-  subnet_ids           = var.subnet_ids
+  subnet_ids           = module.vpc.subnet_ids
   
   depends_on = [ module.vpc ]
 }
