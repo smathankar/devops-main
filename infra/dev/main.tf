@@ -13,6 +13,7 @@ module "eks" {
   
   prefix               = var.prefix
   subnet_ids           = module.vpc.subnet_ids
+  vpc_id               = module.vpc.vpc_id
   
   depends_on = [ module.vpc ]
 }
