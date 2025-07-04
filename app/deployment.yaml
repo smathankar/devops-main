@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: test
-          image: 992382555771.dkr.ecr.us-east-1.amazonaws.com/test-ecr:latest
+          image: 905418147503.dkr.ecr.us-east-1.amazonaws.com/test-ecr:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
