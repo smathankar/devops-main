@@ -8,7 +8,14 @@ module "vpc" {
   #depends_on = [ module.s3_bucket ]
 }
 
-
+module "eks" {
+  source                    = "../modules/eks"
+  
+  prefix               = var.prefix
+  subnet_ids           = var.subnet_ids
+  
+  depends_on = [ module.vpc ]
+}
 
 
 
